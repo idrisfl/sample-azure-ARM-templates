@@ -36,3 +36,10 @@ $vm2Params = @{
 $newVM2 = New-AzVM @vm2Params
 
 $newVM2
+
+# cleanup all resources created
+$job = Remove-AzResourceGroup -Name TutorialResources -Force -AsJob
+
+$job
+
+Wait-Job -Id $job.Id
