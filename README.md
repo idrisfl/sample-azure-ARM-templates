@@ -5,4 +5,4 @@
 ###### Some basic examples for ARM templates are provisioning a VM, creating a Storage blob, mounting a SQL Server Database etc. 
 
 
-*** Disclaimer: These samples are based on those available at https://github.com/Azure/azure-quickstart-templates
+*** Disclaimer: These samples are adapted from the templates available at https://github.com/Azure/azure-quickstart-templates
