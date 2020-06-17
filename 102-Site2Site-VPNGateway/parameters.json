@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworks_HQ_Network_name": {
+            "value": null
+        },
+        "virtualNetworks_Azure_VNet_1_name": {
+            "value": null
+        },
+        "localNetworkGateways_LNG_HQ_Network_name": {
+            "value": null
+        },
+        "publicIPAddresses_PIP_VNG_HQ_Network_name": {
+            "value": null
+        },
+        "localNetworkGateways_LNG_Azure_VNet_1_name": {
+            "value": null
+        },
+        "virtualNetworkGateways_VNG_HQ_Network_name": {
+            "value": null
+        },
+        "connections_Azure_VNet_1_To_HQ_Network_name": {
+            "value": null
+        },
+        "connections_HQ_Network_To_Azure_VNet_1_name": {
+            "value": null
+        },
+        "publicIPAddresses_PIP_VNG_Azure_VNet_1_name": {
+            "value": null
+        },
+        "virtualNetworkGateways_VNG_Azure_VNet_1_name": {
+            "value": null
+        }
+    }
+}
