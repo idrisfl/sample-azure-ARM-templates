@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_licenserenewal20561_name": {
+            "value": null
+        },
+        "virtualMachines_webServer1_name": {
+            "value": null
+        },
+        "virtualMachines_webServer2_name": {
+            "value": null
+        },
+        "serverfarms_vehicleAppServicePlan_name": {
+            "value": null
+        },
+        "virtualNetworks_vehicleAppVnet_name": {
+            "value": null
+        },
+        "networkInterfaces_webServer1VMNic_name": {
+            "value": null
+        },
+        "networkInterfaces_webServer2VMNic_name": {
+            "value": null
+        },
+        "publicIPAddresses_appGatewayPublicIp_name": {
+            "value": null
+        },
+        "applicationGateways_vehicleAppGateway_name": {
+            "value": null
+        }
+    }
+}
