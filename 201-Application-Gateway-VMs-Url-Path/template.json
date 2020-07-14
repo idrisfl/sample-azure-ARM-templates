@@ -1,0 +1,692 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_licenserenewal20561_name": {
+            "defaultValue": "licenserenewal20561",
+            "type": "String"
+        },
+        "virtualMachines_webServer1_name": {
+            "defaultValue": "webServer1",
+            "type": "String"
+        },
+        "virtualMachines_webServer2_name": {
+            "defaultValue": "webServer2",
+            "type": "String"
+        },
+        "serverfarms_vehicleAppServicePlan_name": {
+            "defaultValue": "vehicleAppServicePlan",
+            "type": "String"
+        },
+        "virtualNetworks_vehicleAppVnet_name": {
+            "defaultValue": "vehicleAppVnet",
+            "type": "String"
+        },
+        "networkInterfaces_webServer1VMNic_name": {
+            "defaultValue": "webServer1VMNic",
+            "type": "String"
+        },
+        "networkInterfaces_webServer2VMNic_name": {
+            "defaultValue": "webServer2VMNic",
+            "type": "String"
+        },
+        "publicIPAddresses_appGatewayPublicIp_name": {
+            "defaultValue": "appGatewayPublicIp",
+            "type": "String"
+        },
+        "applicationGateways_vehicleAppGateway_name": {
+            "defaultValue": "vehicleAppGateway",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('publicIPAddresses_appGatewayPublicIp_name')]",
+            "location": "francecentral",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "ipAddress": "51.11.232.10",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "dnsSettings": {
+                    "domainNameLabel": "vehicleapp32256",
+                    "fqdn": "vehicleapp32256.francecentral.cloudapp.azure.com"
+                },
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('virtualNetworks_vehicleAppVnet_name')]",
+            "location": "francecentral",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": []
+                },
+                "subnets": [
+                    {
+                        "name": "webServerSubnet",
+                        "properties": {
+                            "addressPrefix": "10.0.1.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "appGatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('serverfarms_vehicleAppServicePlan_name')]",
+            "location": "France Central",
+            "sku": {
+                "name": "S1",
+                "tier": "Standard",
+                "size": "S1",
+                "family": "S",
+                "capacity": 1
+            },
+            "kind": "app",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "name": "[parameters('virtualMachines_webServer1_name')]",
+            "location": "francecentral",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_webServer1VMNic_name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_DS1_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "18.04-LTS",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_webServer1_name'), '_disk1_df04d1173a3a45518999d37ebc8ea9cc')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_webServer1_name'), '_disk1_df04d1173a3a45518999d37ebc8ea9cc'))]"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_webServer1_name')]",
+                    "adminUsername": "azureuser",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/azureuser/.ssh/authorized_keys",
+                                    "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWqfGtvHSNb18Eq+hBYTE5zFNFHkiQcv6WmSvd9J8Ge0F/AdJr+qm4K+ieSbv4Bz7HO6CUWzxnYAKY9ag689TSPb52hPoFmniLEBMbmiIid8SYeixUCaFjeNLJVl8YwuGwUmhS/opGmnZPxSYdL0S8Ahs/Udz2cpkIJa0bJg/2j7kKVATuVpVUOwf0JS9uCXfZtGR0W8u2hFspS6o2U+lSSpml+nn8AMYyDzO9VR7OOnWwwfG+vdwyW+TMTWGap9XBtPrsf86OzdO5yNGetwDyCZokG9OdbNJCBOnhgCtZTSPlEdWNstGwotomQOGIzrhHXWkUYne6PMq+TzLoIuW3"
+                                }
+                            ]
+                        },
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_webServer1VMNic_name'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "name": "[parameters('virtualMachines_webServer2_name')]",
+            "location": "francecentral",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_webServer2VMNic_name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_DS1_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "18.04-LTS",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_webServer2_name'), '_disk1_8e93178fdeac47a3a7deb28f0eec7b1f')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_webServer2_name'), '_disk1_8e93178fdeac47a3a7deb28f0eec7b1f'))]"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_webServer2_name')]",
+                    "adminUsername": "azureuser",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/azureuser/.ssh/authorized_keys",
+                                    "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWqfGtvHSNb18Eq+hBYTE5zFNFHkiQcv6WmSvd9J8Ge0F/AdJr+qm4K+ieSbv4Bz7HO6CUWzxnYAKY9ag689TSPb52hPoFmniLEBMbmiIid8SYeixUCaFjeNLJVl8YwuGwUmhS/opGmnZPxSYdL0S8Ahs/Udz2cpkIJa0bJg/2j7kKVATuVpVUOwf0JS9uCXfZtGR0W8u2hFspS6o2U+lSSpml+nn8AMYyDzO9VR7OOnWwwfG+vdwyW+TMTWGap9XBtPrsf86OzdO5yNGetwDyCZokG9OdbNJCBOnhgCtZTSPlEdWNstGwotomQOGIzrhHXWkUYne6PMq+TzLoIuW3"
+                                }
+                            ]
+                        },
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_webServer2VMNic_name'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkInterfaces_webServer1VMNic_name')]",
+            "location": "francecentral",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vehicleAppVnet_name'), 'webServerSubnet')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfigwebServer1",
+                        "properties": {
+                            "privateIPAddress": "10.0.1.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vehicleAppVnet_name'), 'webServerSubnet')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkInterfaces_webServer2VMNic_name')]",
+            "location": "francecentral",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vehicleAppVnet_name'), 'webServerSubnet')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfigwebServer2",
+                        "properties": {
+                            "privateIPAddress": "10.0.1.5",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vehicleAppVnet_name'), 'webServerSubnet')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetworks_vehicleAppVnet_name'), '/appGatewaySubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vehicleAppVnet_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.0.0.0/24",
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetworks_vehicleAppVnet_name'), '/webServerSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vehicleAppVnet_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.0.1.0/24",
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_licenserenewal20561_name')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_vehicleAppServicePlan_name'))]"
+            ],
+            "kind": "app",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_licenserenewal20561_name'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_licenserenewal20561_name'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_vehicleAppServicePlan_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_licenserenewal20561_name'), '/web')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_licenserenewal20561_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "phpVersion": "5.6",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$licenserenewal20561",
+                "scmType": "ExternalGit",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": true,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": true
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": true,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/deployments",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_licenserenewal20561_name'), '/21fc07d8c7f25b7fca1df40f30a18a340b6ba220')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_licenserenewal20561_name'))]"
+            ],
+            "properties": {
+                "status": 4,
+                "author_email": "jboeshart@users.noreply.github.com",
+                "author": "Jason Boeshart",
+                "deployer": "GitHub",
+                "message": "Update _Layout.cshtml\n",
+                "start_time": "2020-07-13T20:16:20.9693577Z",
+                "end_time": "2020-07-13T20:17:37.3684456Z",
+                "active": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_licenserenewal20561_name'), '/', parameters('sites_licenserenewal20561_name'), '.azurewebsites.net')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_licenserenewal20561_name'))]"
+            ],
+            "properties": {
+                "siteName": "licenserenewal20561",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Network/applicationGateways",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('applicationGateways_vehicleAppGateway_name')]",
+            "location": "francecentral",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vehicleAppVnet_name'), 'appGatewaySubnet')]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_appGatewayPublicIp_name'))]"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "WAF_v2",
+                    "tier": "WAF_v2",
+                    "capacity": 2
+                },
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "appGatewayFrontendIP",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vehicleAppVnet_name'), 'appGatewaySubnet')]"
+                            }
+                        }
+                    }
+                ],
+                "sslCertificates": [],
+                "trustedRootCertificates": [],
+                "frontendIPConfigurations": [
+                    {
+                        "name": "appGatewayFrontendIP",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_appGatewayPublicIp_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "appGatewayFrontendPort",
+                        "properties": {
+                            "port": 8080
+                        }
+                    },
+                    {
+                        "name": "port80",
+                        "properties": {
+                            "port": 80
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "appGatewayBackendPool",
+                        "properties": {
+                            "backendAddresses": []
+                        }
+                    },
+                    {
+                        "name": "vmPool",
+                        "properties": {
+                            "backendAddresses": [
+                                {
+                                    "ipAddress": "10.0.1.4"
+                                },
+                                {
+                                    "ipAddress": "10.0.1.5"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "appServicePool",
+                        "properties": {
+                            "backendAddresses": [
+                                {
+                                    "fqdn": "licenserenewal20561.azurewebsites.net"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "appGatewayBackendHttpSettings",
+                        "properties": {
+                            "port": 80,
+                            "protocol": "Http",
+                            "cookieBasedAffinity": "Disabled",
+                            "connectionDraining": {
+                                "enabled": false,
+                                "drainTimeoutInSec": 1
+                            },
+                            "pickHostNameFromBackendAddress": true,
+                            "affinityCookieName": "ApplicationGatewayAffinity",
+                            "requestTimeout": 30,
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/probes/customProbe')]"
+                            }
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "appGatewayHttpListener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/frontendPorts/appGatewayFrontendPort')]"
+                            },
+                            "protocol": "Http",
+                            "hostNames": [],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "vehicleListener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/frontendPorts/port80')]"
+                            },
+                            "protocol": "Http",
+                            "hostNames": [],
+                            "requireServerNameIndication": false
+                        }
+                    }
+                ],
+                "urlPathMaps": [
+                    {
+                        "name": "urlPathMap",
+                        "properties": {
+                            "defaultBackendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/backendAddressPools/vmPool')]"
+                            },
+                            "defaultBackendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/backendHttpSettingsCollection/appGatewayBackendHttpSettings')]"
+                            },
+                            "pathRules": [
+                                {
+                                    "name": "default",
+                                    "properties": {
+                                        "paths": [
+                                            "/VehicleRegistration/*"
+                                        ],
+                                        "backendAddressPool": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/backendAddressPools/vmPool')]"
+                                        },
+                                        "backendHttpSettings": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/backendHttpSettingsCollection/appGatewayBackendHttpSettings')]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "appServiceUrlPathMap",
+                                    "properties": {
+                                        "paths": [
+                                            "/LicenseRenewal/*"
+                                        ],
+                                        "backendAddressPool": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/backendAddressPools/appServicePool')]"
+                                        },
+                                        "backendHttpSettings": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/backendHttpSettingsCollection/appGatewayBackendHttpSettings')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "requestRoutingRules": [
+                    {
+                        "name": "appServiceRule",
+                        "properties": {
+                            "ruleType": "PathBasedRouting",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/httpListeners/vehicleListener')]"
+                            },
+                            "urlPathMap": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGateways_vehicleAppGateway_name')), '/urlPathMaps/urlPathMap')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "customProbe",
+                        "properties": {
+                            "protocol": "Http",
+                            "path": "/",
+                            "interval": 15,
+                            "timeout": 10,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": true,
+                            "minServers": 0,
+                            "match": {
+                                "statusCodes": [
+                                    "200-399"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "rewriteRuleSets": [],
+                "redirectConfigurations": [],
+                "privateLinkConfigurations": []
+            }
+        }
+    ]
+}
