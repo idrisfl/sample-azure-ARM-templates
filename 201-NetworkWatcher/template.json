@@ -1,0 +1,743 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworks_MyVNet1_name": {
+            "defaultValue": "MyVNet1",
+            "type": "String"
+        },
+        "virtualMachines_BackendVM_name": {
+            "defaultValue": "BackendVM",
+            "type": "String"
+        },
+        "virtualMachines_FrontendVM_name": {
+            "defaultValue": "FrontendVM",
+            "type": "String"
+        },
+        "networkSecurityGroups_MyNsg_name": {
+            "defaultValue": "MyNsg",
+            "type": "String"
+        },
+        "networkWatchers_EastUS_watcher_name": {
+            "defaultValue": "EastUS-watcher",
+            "type": "String"
+        },
+        "networkInterfaces_BackendVMVMNic_name": {
+            "defaultValue": "BackendVMVMNic",
+            "type": "String"
+        },
+        "networkInterfaces_FrontendVMVMNic_name": {
+            "defaultValue": "FrontendVMVMNic",
+            "type": "String"
+        },
+        "networkSecurityGroups_BackendVMNSG_name": {
+            "defaultValue": "BackendVMNSG",
+            "type": "String"
+        },
+        "networkSecurityGroups_FrontendVMNSG_name": {
+            "defaultValue": "FrontendVMNSG",
+            "type": "String"
+        },
+        "publicIPAddresses_BackendVMPublicIP_name": {
+            "defaultValue": "BackendVMPublicIP",
+            "type": "String"
+        },
+        "publicIPAddresses_FrontendVMPublicIP_name": {
+            "defaultValue": "FrontendVMPublicIP",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkSecurityGroups_BackendVMNSG_name')]",
+            "location": "eastus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "rdp",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkSecurityGroups_FrontendVMNSG_name')]",
+            "location": "eastus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "rdp",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkSecurityGroups_MyNsg_name')]",
+            "location": "eastus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "MyNSGRule",
+                        "properties": {
+                            "description": "Deny from specific IP address ranges on 80, 443 and 3389.",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 4096,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [
+                                "80",
+                                "443",
+                                "3389"
+                            ],
+                            "destinationPortRanges": [
+                                "80",
+                                "443",
+                                "3389"
+                            ],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkWatchers",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkWatchers_EastUS_watcher_name')]",
+            "location": "eastus",
+            "properties": {
+                "provisioningState": "Succeeded",
+                "runningOperationIds": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('publicIPAddresses_BackendVMPublicIP_name')]",
+            "location": "eastus",
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "ipAddress": "137.135.117.20",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('publicIPAddresses_FrontendVMPublicIP_name')]",
+            "location": "eastus",
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "ipAddress": "52.152.223.59",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "name": "[parameters('virtualMachines_BackendVM_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_BackendVMVMNic_name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_DS1_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2012-R2-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "[concat(parameters('virtualMachines_BackendVM_name'), '_disk1_99dd0a6ed7c24161a889ea87daad8335')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_BackendVM_name'), '_disk1_99dd0a6ed7c24161a889ea87daad8335'))]"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_BackendVM_name')]",
+                    "adminUsername": "azureuser",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_BackendVMVMNic_name'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "name": "[parameters('virtualMachines_FrontendVM_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FrontendVMVMNic_name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_DS1_v2"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2012-R2-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "[concat(parameters('virtualMachines_FrontendVM_name'), '_disk1_5c40991396b641d5b9bbb957f1136933')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_FrontendVM_name'), '_disk1_5c40991396b641d5b9bbb957f1136933'))]"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_FrontendVM_name')]",
+                    "adminUsername": "azureuser",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_FrontendVMVMNic_name'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2019-07-01",
+            "name": "[concat(parameters('virtualMachines_BackendVM_name'), '/AzureNetworkWatcherExtension')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]"
+            ],
+            "properties": {
+                "autoUpgradeMinorVersion": true,
+                "publisher": "Microsoft.Azure.NetworkWatcher",
+                "type": "NetworkWatcherAgentWindows",
+                "typeHandlerVersion": "1.4"
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2019-07-01",
+            "name": "[concat(parameters('virtualMachines_FrontendVM_name'), '/AzureNetworkWatcherExtension')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]"
+            ],
+            "properties": {
+                "autoUpgradeMinorVersion": true,
+                "publisher": "Microsoft.Azure.NetworkWatcher",
+                "type": "NetworkWatcherAgentWindows",
+                "typeHandlerVersion": "1.4"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('networkSecurityGroups_MyNsg_name'), '/', parameters('networkSecurityGroups_MyNsg_name'), 'Rule')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_MyNsg_name'))]"
+            ],
+            "properties": {
+                "description": "Deny from specific IP address ranges on 80, 443 and 3389.",
+                "protocol": "Tcp",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Deny",
+                "priority": 4096,
+                "direction": "Inbound",
+                "sourcePortRanges": [
+                    "80",
+                    "443",
+                    "3389"
+                ],
+                "destinationPortRanges": [
+                    "80",
+                    "443",
+                    "3389"
+                ],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('networkSecurityGroups_BackendVMNSG_name'), '/rdp')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_BackendVMNSG_name'))]"
+            ],
+            "properties": {
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "destinationPortRange": "3389",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 1000,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('networkSecurityGroups_FrontendVMNSG_name'), '/rdp')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_FrontendVMNSG_name'))]"
+            ],
+            "properties": {
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "destinationPortRange": "3389",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 1000,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('virtualNetworks_MyVNet1_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_MyNsg_name'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.10.0.0/16"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": []
+                },
+                "subnets": [
+                    {
+                        "name": "FrontendSubnet",
+                        "properties": {
+                            "addressPrefix": "10.10.1.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "BackendSubnet",
+                        "properties": {
+                            "addressPrefix": "10.10.2.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_MyNsg_name'))]"
+                            },
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetworks_MyVNet1_name'), '/FrontendSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_MyVNet1_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.10.1.0/24",
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('virtualNetworks_MyVNet1_name'), '/BackendSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_MyVNet1_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_MyNsg_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.10.2.0/24",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_MyNsg_name'))]"
+                },
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkInterfaces_BackendVMVMNic_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_BackendVMPublicIP_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyVNet1_name'), 'BackendSubnet')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_BackendVMNSG_name'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfigBackendVM",
+                        "properties": {
+                            "privateIPAddress": "10.10.2.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_BackendVMPublicIP_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyVNet1_name'), 'BackendSubnet')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_BackendVMNSG_name'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('networkInterfaces_FrontendVMVMNic_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_FrontendVMPublicIP_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyVNet1_name'), 'FrontendSubnet')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_FrontendVMNSG_name'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfigFrontendVM",
+                        "properties": {
+                            "privateIPAddress": "10.10.1.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_FrontendVMPublicIP_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyVNet1_name'), 'FrontendSubnet')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_FrontendVMNSG_name'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkWatchers/connectionMonitors",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('networkWatchers_EastUS_watcher_name'), '/Back-to-front-HTTP-test')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkWatchers', parameters('networkWatchers_EastUS_watcher_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]"
+            ],
+            "properties": {
+                "endpoints": [
+                    {
+                        "name": "defaultSourceEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]"
+                    },
+                    {
+                        "name": "defaultDestinationEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]"
+                    }
+                ],
+                "testConfigurations": [
+                    {
+                        "name": "defaultTestConfiguration",
+                        "testFrequencySec": 30,
+                        "protocol": "Tcp",
+                        "tcpConfiguration": {
+                            "port": 80,
+                            "disableTraceRoute": false
+                        }
+                    }
+                ],
+                "testGroups": [
+                    {
+                        "name": "defaultTestGroup",
+                        "disable": false,
+                        "testConfigurations": [
+                            "defaultTestConfiguration"
+                        ],
+                        "sources": [
+                            "defaultSourceEndpoint"
+                        ],
+                        "destinations": [
+                            "defaultDestinationEndpoint"
+                        ]
+                    }
+                ],
+                "outputs": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkWatchers/connectionMonitors",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('networkWatchers_EastUS_watcher_name'), '/Back-to-front-RDP-test')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkWatchers', parameters('networkWatchers_EastUS_watcher_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]"
+            ],
+            "properties": {
+                "endpoints": [
+                    {
+                        "name": "defaultSourceEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]"
+                    },
+                    {
+                        "name": "defaultDestinationEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]"
+                    }
+                ],
+                "testConfigurations": [
+                    {
+                        "name": "defaultTestConfiguration",
+                        "testFrequencySec": 30,
+                        "protocol": "Tcp",
+                        "tcpConfiguration": {
+                            "port": 3389,
+                            "disableTraceRoute": false
+                        }
+                    }
+                ],
+                "testGroups": [
+                    {
+                        "name": "defaultTestGroup",
+                        "disable": false,
+                        "testConfigurations": [
+                            "defaultTestConfiguration"
+                        ],
+                        "sources": [
+                            "defaultSourceEndpoint"
+                        ],
+                        "destinations": [
+                            "defaultDestinationEndpoint"
+                        ]
+                    }
+                ],
+                "outputs": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkWatchers/connectionMonitors",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('networkWatchers_EastUS_watcher_name'), '/Front-to-back-HTTP-test')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkWatchers', parameters('networkWatchers_EastUS_watcher_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]"
+            ],
+            "properties": {
+                "endpoints": [
+                    {
+                        "name": "defaultSourceEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]"
+                    },
+                    {
+                        "name": "defaultDestinationEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]"
+                    }
+                ],
+                "testConfigurations": [
+                    {
+                        "name": "defaultTestConfiguration",
+                        "testFrequencySec": 30,
+                        "protocol": "Tcp",
+                        "tcpConfiguration": {
+                            "port": 80,
+                            "disableTraceRoute": false
+                        }
+                    }
+                ],
+                "testGroups": [
+                    {
+                        "name": "defaultTestGroup",
+                        "disable": false,
+                        "testConfigurations": [
+                            "defaultTestConfiguration"
+                        ],
+                        "sources": [
+                            "defaultSourceEndpoint"
+                        ],
+                        "destinations": [
+                            "defaultDestinationEndpoint"
+                        ]
+                    }
+                ],
+                "outputs": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkWatchers/connectionMonitors",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('networkWatchers_EastUS_watcher_name'), '/front-to-back-RDP-test')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkWatchers', parameters('networkWatchers_EastUS_watcher_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]",
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]"
+            ],
+            "properties": {
+                "endpoints": [
+                    {
+                        "name": "defaultSourceEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_FrontendVM_name'))]"
+                    },
+                    {
+                        "name": "defaultDestinationEndpoint",
+                        "resourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_BackendVM_name'))]"
+                    }
+                ],
+                "testConfigurations": [
+                    {
+                        "name": "defaultTestConfiguration",
+                        "testFrequencySec": 30,
+                        "protocol": "Tcp",
+                        "tcpConfiguration": {
+                            "port": 3389,
+                            "disableTraceRoute": false
+                        }
+                    }
+                ],
+                "testGroups": [
+                    {
+                        "name": "defaultTestGroup",
+                        "disable": false,
+                        "testConfigurations": [
+                            "defaultTestConfiguration"
+                        ],
+                        "sources": [
+                            "defaultSourceEndpoint"
+                        ],
+                        "destinations": [
+                            "defaultDestinationEndpoint"
+                        ]
+                    }
+                ],
+                "outputs": []
+            }
+        }
+    ]
+}
