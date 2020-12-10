@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_myIdentityManagedFunctionApp_name": {
+            "value": null
+        },
+        "serverfarms_ASP_managedidentityrg_a6c6_name": {
+            "value": null
+        },
+        "storageAccounts_storageaccount20201210_name": {
+            "value": null
+        },
+        "components_myIdentityManagedFunctionApp_name": {
+            "value": null
+        },
+        "searchServices_search_identity_demo_20201210_name": {
+            "value": null
+        },
+        "userAssignedIdentities_user_managed_identity_20201210_name": {
+            "value": null
+        }
+    }
+}
