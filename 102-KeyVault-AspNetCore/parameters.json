@@ -1,0 +1,15 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serverfarms_ASP_keyvaultrg_8625_name": {
+            "value": null
+        },
+        "sites_azurekeyvaultaspnetcoreapp_name": {
+            "value": null
+        },
+        "vaults_my_key_vault_20201211_name": {
+            "value": null
+        }
+    }
+}
