@@ -1,0 +1,253 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serverfarms_ASP_keyvaultrg_8625_name": {
+            "defaultValue": "ASP-keyvaultrg-8625",
+            "type": "String"
+        },
+        "sites_azurekeyvaultaspnetcoreapp_name": {
+            "defaultValue": "azurekeyvaultaspnetcoreapp",
+            "type": "String"
+        },
+        "vaults_my_key_vault_20201211_name": {
+            "defaultValue": "my-key-vault-20201211",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2016-10-01",
+            "name": "[parameters('vaults_my_key_vault_20201211_name')]",
+            "location": "francecentral",
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "Standard"
+                },
+                "tenantId": "d5c8599f-4be6-479b-a8a8-f8d4cd6d2859",
+                "accessPolicies": [
+                    {
+                        "tenantId": "d5c8599f-4be6-479b-a8a8-f8d4cd6d2859",
+                        "objectId": "daf9fe85-ca5c-414a-8118-1eb66df70b27",
+                        "permissions": {
+                            "keys": [],
+                            "secrets": [
+                                "Get",
+                                "List",
+                                "Set",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore",
+                                "Purge"
+                            ],
+                            "certificates": []
+                        }
+                    },
+                    {
+                        "tenantId": "d5c8599f-4be6-479b-a8a8-f8d4cd6d2859",
+                        "objectId": "8e8ece21-d5ce-482a-b71c-21caaf377fb5",
+                        "permissions": {
+                            "keys": [],
+                            "secrets": [
+                                "Get",
+                                "List",
+                                "Set",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore",
+                                "Purge"
+                            ],
+                            "certificates": []
+                        }
+                    }
+                ],
+                "enabledForDeployment": false,
+                "enabledForDiskEncryption": false,
+                "enabledForTemplateDeployment": false,
+                "enableSoftDelete": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('serverfarms_ASP_keyvaultrg_8625_name')]",
+            "location": "France Central",
+            "sku": {
+                "name": "F1",
+                "tier": "Free",
+                "size": "F1",
+                "family": "F",
+                "capacity": 0
+            },
+            "kind": "app",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[concat(parameters('vaults_my_key_vault_20201211_name'), '/secretColour')]",
+            "location": "francecentral",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('vaults_my_key_vault_20201211_name'))]"
+            ],
+            "properties": {
+                "attributes": {
+                    "enabled": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_azurekeyvaultaspnetcoreapp_name')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_keyvaultrg_8625_name'))]"
+            ],
+            "kind": "app",
+            "identity": {
+                "principalId": "daf9fe85-ca5c-414a-8118-1eb66df70b27",
+                "tenantId": "d5c8599f-4be6-479b-a8a8-f8d4cd6d2859",
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_azurekeyvaultaspnetcoreapp_name'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_azurekeyvaultaspnetcoreapp_name'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_keyvaultrg_8625_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_azurekeyvaultaspnetcoreapp_name'), '/web')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_azurekeyvaultaspnetcoreapp_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "remoteDebuggingVersion": "VS2019",
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$azurekeyvaultaspnetcoreapp",
+                "azureStorageAccounts": {},
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "managedServiceIdentityId": 157,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_azurekeyvaultaspnetcoreapp_name'), '/', parameters('sites_azurekeyvaultaspnetcoreapp_name'), '.azurewebsites.net')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_azurekeyvaultaspnetcoreapp_name'))]"
+            ],
+            "properties": {
+                "siteName": "azurekeyvaultaspnetcoreapp",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/siteextensions",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_azurekeyvaultaspnetcoreapp_name'), '/Microsoft.AspNetCore.AzureAppServices.SiteExtension')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_azurekeyvaultaspnetcoreapp_name'))]"
+            ]
+        }
+    ]
+}
