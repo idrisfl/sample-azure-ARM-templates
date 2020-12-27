@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "managedClusters_ilo_cluster_20201227_name": {
+        "managedClusters_ilocl_20201227_name": {
             "value": null
         },
         "workspaces_defaultworkspace_d37c8b8a_f3ac_45c2_aa28_36aa9a1cf983_par_externalid": {
