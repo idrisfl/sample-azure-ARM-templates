@@ -1,0 +1,47 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "accounts_ilolearnluis_name": {
+            "defaultValue": "ilolearnluis",
+            "type": "String"
+        },
+        "accounts_ilolearnluis_Authoring_name": {
+            "defaultValue": "ilolearnluis-Authoring",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2017-04-18",
+            "name": "[parameters('accounts_ilolearnluis_name')]",
+            "location": "westeurope",
+            "sku": {
+                "name": "F0"
+            },
+            "kind": "LUIS",
+            "properties": {
+                "customSubDomainName": "[parameters('accounts_ilolearnluis_name')]",
+                "privateEndpointConnections": [],
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2017-04-18",
+            "name": "[parameters('accounts_ilolearnluis_Authoring_name')]",
+            "location": "westeurope",
+            "sku": {
+                "name": "F0"
+            },
+            "kind": "LUIS.Authoring",
+            "properties": {
+                "customSubDomainName": "ilolearnluis-authoring",
+                "privateEndpointConnections": [],
+                "publicNetworkAccess": "Enabled"
+            }
+        }
+    ]
+}
