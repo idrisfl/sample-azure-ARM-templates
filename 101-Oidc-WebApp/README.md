@@ -1,0 +1,1 @@
+# ARM Template for deploying a Webb App that is configured to use Azure AD Open Id Connect authentication 
