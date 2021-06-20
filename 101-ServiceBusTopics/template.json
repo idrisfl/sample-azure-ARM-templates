@@ -1,0 +1,176 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namespaces_myservicebus20210619_name": {
+            "defaultValue": "myservicebus20210619",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ServiceBus/namespaces",
+            "apiVersion": "2021-01-01-preview",
+            "name": "[parameters('namespaces_myservicebus20210619_name')]",
+            "location": "France Central",
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard"
+            },
+            "properties": {
+                "zoneRedundant": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/RootManageSharedAccessKey')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen",
+                    "Manage",
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/networkRuleSets",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/default')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "defaultAction": "Deny",
+                "virtualNetworkRules": [],
+                "ipRules": []
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/mymessages')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "defaultMessageTimeToLive": "P14D",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": false,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "enableBatchedOperations": true,
+                "status": "Active",
+                "supportOrdering": true,
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/authorizationRules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/mymessages/myservicebussas')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_myservicebus20210619_name'), 'mymessages')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Manage",
+                    "Listen",
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/mymessages/customersubscription')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_myservicebus20210619_name'), 'mymessages')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "lockDuration": "PT30S",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": false,
+                "maxDeliveryCount": 1,
+                "status": "Active",
+                "enableBatchedOperations": true,
+                "autoDeleteOnIdle": "P14D"
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/mymessages/ordersubscription')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_myservicebus20210619_name'), 'mymessages')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "lockDuration": "PT30S",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": false,
+                "maxDeliveryCount": 1,
+                "status": "Active",
+                "enableBatchedOperations": true,
+                "autoDeleteOnIdle": "P14D"
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions/rules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/mymessages/customersubscription/customerfilter')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics/subscriptions', parameters('namespaces_myservicebus20210619_name'), 'mymessages', 'customersubscription')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_myservicebus20210619_name'), 'mymessages')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "action": {},
+                "filterType": "CorrelationFilter",
+                "correlationFilter": {
+                    "properties": {
+                        "messagetype": "CreateCustomerRequest"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions/rules",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[concat(parameters('namespaces_myservicebus20210619_name'), '/mymessages/ordersubscription/orderfilter')]",
+            "location": "France Central",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics/subscriptions', parameters('namespaces_myservicebus20210619_name'), 'mymessages', 'ordersubscription')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_myservicebus20210619_name'), 'mymessages')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_myservicebus20210619_name'))]"
+            ],
+            "properties": {
+                "action": {},
+                "filterType": "CorrelationFilter",
+                "correlationFilter": {
+                    "properties": {
+                        "messagetype": "CreateOrderRequest"
+                    }
+                }
+            }
+        }
+    ]
+}
